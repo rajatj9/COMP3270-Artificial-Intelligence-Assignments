@@ -181,7 +181,7 @@ class PositionSearchProblem(search.SearchProblem):
             if not self.walls[nextx][nexty]:
                 nextState = (nextx, nexty)
                 cost = self.costFn(nextState)
-                successors.append( ( nextState, action, cost) )
+                successors.append(( nextState, action, cost))
 
         # Bookkeeping for display purposes
         self._expanded += 1
@@ -430,7 +430,7 @@ def foodHeuristic(state, problem):
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
-    "Search for all food using a sequence of searches"
+    """Search for all food using a sequence of searches"""
     def registerInitialState(self, state):
         self.actions = []
         currentState = state

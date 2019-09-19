@@ -73,20 +73,67 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start_state = problem.getStartState()
+    frontier = util.Stack()
+    for element in problem.getSuccessors(start_state):
+        frontier.push([element])
+    explored_set = {start_state}
+
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[-1][0]):
+            result = [element[1] for element in node]
+            return result
+        elif node[-1][0] not in explored_set:
+            explored_set.add(node[-1][0])
+            for element in problem.getSuccessors(node[-1][0]):
+                frontier.push(node + [element])
+
 
 def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start_state = problem.getStartState()
+    frontier = util.Queue()
+    for element in problem.getSuccessors(start_state):
+        frontier.push([element])
+    explored_set = {start_state}
+
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[-1][0]):
+            print("Found the goal..")
+            result = [element[1] for element in node]
+            return result
+        elif node[-1][0] not in explored_set:
+            print(explored_set)
+            explored_set.add(node[-1][0])
+            for element in problem.getSuccessors(node[-1][0]):
+                frontier.push(node + [element])
+
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start_state = problem.getStartState()
+    frontier = util.PriorityQueue()
+    for element in problem.getSuccessors(start_state):
+        frontier.push([element], element[2])
+    explored_set = {start_state}
 
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[-1][0]):
+            result = [element[1] for element in node]
+            return result
+        elif node[-1][0] not in explored_set:
+            explored_set.add(node[-1][0])
+            for element in problem.getSuccessors(node[-1][0]):
+                cost = sum([state[2] for state in node])  # Cost upto this node
+                cost += element[2]   # Cost for new Node
+                frontier.push(node + [element], cost)
 def nullHeuristic(state, problem=None):
     """
     A heuristic function estimates the cost from the current state to the nearest
@@ -97,7 +144,25 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    start_state = problem.getStartState()
+    frontier = util.PriorityQueue()
+    for element in problem.getSuccessors(start_state):
+        frontier.push([element], element[2] + heuristic(element[0], problem))
+    explored_set = {start_state}
+
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[-1][0]):
+            print("Found the goal..")
+            result = [element[1] for element in node]
+            return result
+        elif node[-1][0] not in explored_set:
+            explored_set.add(node[-1][0])
+            for element in problem.getSuccessors(node[-1][0]):
+                cost = sum([state[2] for state in node])  # Cost upto this Node
+                cost += element[2]  # Path Cost for New Node
+                cost += heuristic(element[0], problem)  # Heuristic from this Node
+                frontier.push(node + [element], cost)
 
 # Abbreviations
 bfs = breadthFirstSearch
