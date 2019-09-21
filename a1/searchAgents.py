@@ -261,24 +261,44 @@ class CornersProblem(search.SearchProblem):
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
         top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        self.corners = ((1, 1), (1, top), (right, 1), (right, top))
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
-        self._expanded = 0 # Number of search nodes expanded
+        self._expanded = 0  # Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.food_in_corners = []
+        for index, corner in enumerate(self.corners):
+            x_cord, y_cord = corner[0], corner[1]
+            if not startingGameState.hasFood(x_cord, y_cord):
+                startingGameState.data.food[x_cord][y_cord] = True
+            self.food_in_corners.insert(index, startingGameState.data.food[x_cord][y_cord])
+        self.costFn = lambda x: 1
+        self.food_in_corners = tuple(self.food_in_corners)
+        self.startState = (self.startingPosition, self.food_in_corners)
+        self._visited = dict()
+        self._visitedlist = []
+        self._expanded = 0
+
+        self.visualize = True
+        warn = True
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.startState
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        food_in_corners = state[1]
+        for food_at_location in food_in_corners:
+            if food_at_location:
+                return False
+        return True
+
 
     def getSuccessors(self, state):
         """
@@ -296,14 +316,32 @@ class CornersProblem(search.SearchProblem):
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x, y = state[0][0], state[0][1]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            next_state = []
+            if not hitsWall:
+                next_state.append((nextx, nexty))
+                if (nextx, nexty) not in self.corners:
+                    cost = self.costFn(next_state[0])
+                    next_state.append(state[1])
+                    next_state = tuple(next_state)
+                    successors.append((next_state, action, cost))
+                else:
+                    food_in_corners_list = list(state[1])
+                    cost = self.costFn(next_state[0])
+                    index_of_corner = self.corners.index(next_state[0])
+                    food_in_corners_list[index_of_corner] = False
+                    next_state.append(tuple(food_in_corners_list))
+                    next_state = tuple(next_state)
+                    successors.append((next_state, action, cost))
 
             "*** YOUR CODE HERE ***"
-
         self._expanded += 1
+        if state not in self._visited:
+            self._visited[state] = True
+            self._visitedlist.append(state)
         return successors
 
     def getCostOfActions(self, actions):
@@ -334,6 +372,12 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    goalState = True
+    for point in corners:
+        if point not in problem._visited:
+            goalState = False
+    if goalState:
+        return 0
 
     "*** YOUR CODE HERE ***"
     return 0 # Default to trivial solution
