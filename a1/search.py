@@ -104,11 +104,9 @@ def breadthFirstSearch(problem):
     while not frontier.isEmpty():
         node = frontier.pop()
         if problem.isGoalState(node[-1][0]):
-            print("Found the goal..")
             result = [element[1] for element in node]
             return result
         elif node[-1][0] not in explored_set:
-            print(explored_set)
             explored_set.add(node[-1][0])
             for element in problem.getSuccessors(node[-1][0]):
                 frontier.push(node + [element])
