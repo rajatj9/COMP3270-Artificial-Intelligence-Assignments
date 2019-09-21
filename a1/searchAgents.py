@@ -25,6 +25,7 @@ from game import Actions
 import util
 import time
 import search
+import itertools
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -337,11 +338,11 @@ class CornersProblem(search.SearchProblem):
                     next_state = tuple(next_state)
                     successors.append((next_state, action, cost))
 
-            "*** YOUR CODE HERE ***"
-        self._expanded += 1
         if state not in self._visited:
             self._visited[state] = True
             self._visitedlist.append(state)
+        self._expanded += 1
+
         return successors
 
     def getCostOfActions(self, actions):
@@ -372,26 +373,42 @@ def cornersHeuristic(state, problem):
     """
     corners = problem.corners  # These are the corner coordinates
     walls = problem.walls  # These are the walls of the maze, as a Grid (game.py)
-    heuristic = 0
     if problem.isGoalState(state):
-        return heuristic
-
+        return 0
     food_list = state[1]
-    corners_to_add = [corners[index] for index, food_entry in enumerate(food_list) if food_entry]
-    visited_positions = [state[0]]
-    for i in range(len(corners_to_add)):
-        minimum_distance = walls.height + walls.width
-        for j in range(len(corners_to_add)):
-            if corners_to_add[j] not in visited_positions:
-                manhattan_distance = abs(visited_positions[i][0] - corners_to_add[j][0]) + \
-                                     abs(visited_positions[i][1] - corners_to_add[j][1])
+    corners_to_visit = [corners[index] for index, food_entry in enumerate(food_list) if food_entry]
+    heuristic = None
+    sequences_possible = itertools.permutations(corners_to_visit)
+    for path in sequences_possible:
+        agent_position = state[0]
+        manhattan_distance = 0
+        for corner in path:
+            manhattan_distance += abs(agent_position[0] - corner[0]) + \
+                                     abs(agent_position[1] - corner[1])
+            agent_position = corner
+        if heuristic is not None:
+            heuristic = min(heuristic, manhattan_distance)
+        else:
+            heuristic = manhattan_distance
+    return heuristic
 
-                if manhattan_distance < minimum_distance:
-                    minimum_distance = manhattan_distance
-                    corner_key = j
-        visited_positions.append(corners_to_add[corner_key])
-        heuristic += minimum_distance
-        return heuristic
+    #
+    # food_list = state[1]
+    # corners_to_add = [corners[index] for index, food_entry in enumerate(food_list) if food_entry]
+    # visited_positions = [state[0]]
+    # for i in range(len(corners_to_add)):
+    #     minimum_distance = walls.height + walls.width
+    #     for j in range(len(corners_to_add)):
+    #         if corners_to_add[j] not in visited_positions:
+    #             manhattan_distance = abs(visited_positions[i][0] - corners_to_add[j][0]) + \
+    #                                  abs(visited_positions[i][1] - corners_to_add[j][1])
+    #
+    #             if manhattan_distance < minimum_distance:
+    #                 minimum_distance = manhattan_distance
+    #                 corner_key = j
+    #     visited_positions.append(corners_to_add[corner_key])
+    #     heuristic += minimum_distance
+    #     return heuristic
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
