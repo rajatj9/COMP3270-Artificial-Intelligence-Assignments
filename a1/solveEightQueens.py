@@ -44,6 +44,10 @@ class SolveEightQueens:
             currentNumberOfAttacks = newBoard.getNumberOfAttacks()
             (newBoard, newNumberOfAttacks, newRow, newCol) = newBoard.getBetterBoard()
             i += 1
+            # local_minima_flag = 0
+            # if currentNumberOfAttacks == newNumberOfAttacks and local_minima_flag <= 100:
+            #     (newBoard, newNumberOfAttacks, newRow, newCol) = newBoard.getBetterBoard()
+            #     local_minima_flag += 1
             if currentNumberOfAttacks <= newNumberOfAttacks:
                 break
         return newBoard
@@ -100,11 +104,38 @@ class Board:
         This function should return a tuple containing containing four values
         the new Board object, the new number of attacks, 
         the Column and Row of the new queen  
-        For exmaple: 
+        For example:
             return (betterBoard, minNumOfAttack, newRow, newCol)
         The datatype of minNumOfAttack, newRow and newCol should be int
         """
-        util.raiseNotDefined()
+        board_size = len(self.squareArray)
+        min_attacks, newX, newY = board_size**2, 0, 0
+        for col_index in range(board_size):
+            queen_loc_x = 0
+            for row_index in range(board_size):
+                if self.squareArray[row_index][col_index] == 1:
+                    queen_loc_x = row_index
+                    break
+            self.squareArray[queen_loc_x][col_index] = 0
+
+            for row_index in range(board_size):
+                self.squareArray[row_index][col_index] = 1
+                attacks = self.getNumberOfAttacks()
+                if attacks < min_attacks:
+                    min_attacks = attacks
+                    newX = row_index
+                    newY = col_index
+                self.squareArray[row_index][col_index] = 0
+
+            self.squareArray[queen_loc_x][col_index] = 1
+
+        better_board = copy.deepcopy(self)
+        for i in range(board_size):
+            better_board.squareArray[i][newY] = 0
+        better_board.squareArray[newX][newY] = 1
+
+        return (better_board, min_attacks, newX, newY)
+
 
     def getNumberOfAttacks(self):
         """
@@ -112,7 +143,30 @@ class Board:
         This function should return the number of attacks of the current board
         The datatype of the return value should be int
         """
-        util.raiseNotDefined()
+        num_attacks = 0
+        board_size = len(self.squareArray)
+        for queen_loc_y in range(board_size):
+            queen_loc_x = 0
+            for row_index in range(board_size):
+                if self.squareArray[row_index][queen_loc_y] == 1:
+                    queen_loc_x = row_index
+                    break
+            for col_index in range(queen_loc_y+1, board_size):
+                if self.squareArray[queen_loc_x][col_index] == 1:
+                    num_attacks += 1
+            start_x, start_y = queen_loc_x, queen_loc_y
+            while start_x > 0 and start_y < board_size - 1:
+                start_y += 1
+                start_x -= 1
+                if self.squareArray[start_x][start_y] == 1:
+                    num_attacks += 1
+            start_x, start_y = queen_loc_x, queen_loc_y
+            while start_x < board_size - 1 and start_y < board_size - 1:
+                start_y += 1
+                start_x += 1
+                if self.squareArray[start_x][start_y] == 1:
+                    num_attacks += 1
+        return num_attacks
 
 if __name__ == "__main__":
     #Enable the following line to generate the same random numbers (useful for debugging)
