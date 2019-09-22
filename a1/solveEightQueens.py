@@ -34,7 +34,7 @@ class SolveEightQueens:
         Hint: Modify the stop criterion in this function
         """
         newBoard = board
-        i = 0 
+        i = 0
         while True:
             if verbose:
                 print("iteration %d" % i)
@@ -44,11 +44,12 @@ class SolveEightQueens:
             currentNumberOfAttacks = newBoard.getNumberOfAttacks()
             (newBoard, newNumberOfAttacks, newRow, newCol) = newBoard.getBetterBoard()
             i += 1
-            # local_minima_flag = 0
-            # if currentNumberOfAttacks == newNumberOfAttacks and local_minima_flag <= 100:
-            #     (newBoard, newNumberOfAttacks, newRow, newCol) = newBoard.getBetterBoard()
-            #     local_minima_flag += 1
-            if currentNumberOfAttacks <= newNumberOfAttacks:
+            if newNumberOfAttacks == 0:
+                break
+            if currentNumberOfAttacks == newNumberOfAttacks:
+                if i > 100:
+                    break
+            if currentNumberOfAttacks < newNumberOfAttacks:
                 break
         return newBoard
 
@@ -65,7 +66,7 @@ class Board:
         for i in range(8):
             tmpSquareArray[random.randint(0,7)][i] = 1
         return tmpSquareArray
-          
+
     def toString(self, isCostBoard=False):
         """
         Transform the Array in Board or cost Board to printable string
@@ -79,11 +80,11 @@ class Board:
                 else: # Board
                     s = (s + ". ") if self.squareArray[i][j] == 0 else (s + "q ")
             s += "\n"
-        return s 
+        return s
 
     def getCostBoard(self):
         """
-        First Initalize all the cost as 9999. 
+        First Initalize all the cost as 9999.
         After filling, the position with 9999 cost indicating the position of queen.
         """
         costBoard = Board([[ 9999 for i in range(8)] for j in range(8)])
@@ -102,32 +103,28 @@ class Board:
         """
         "*** YOUR CODE HERE ***"
         This function should return a tuple containing containing four values
-        the new Board object, the new number of attacks, 
-        the Column and Row of the new queen  
+        the new Board object, the new number of attacks,
+        the Column and Row of the new queen
         For example:
             return (betterBoard, minNumOfAttack, newRow, newCol)
         The datatype of minNumOfAttack, newRow and newCol should be int
         """
         board_size = len(self.squareArray)
         min_attacks, newX, newY = board_size**2, 0, 0
+        cost_board = self.getCostBoard().squareArray
         for col_index in range(board_size):
-            queen_loc_x = 0
             for row_index in range(board_size):
-                if self.squareArray[row_index][col_index] == 1:
-                    queen_loc_x = row_index
-                    break
-            self.squareArray[queen_loc_x][col_index] = 0
-
-            for row_index in range(board_size):
-                self.squareArray[row_index][col_index] = 1
-                attacks = self.getNumberOfAttacks()
-                if attacks < min_attacks:
-                    min_attacks = attacks
+                if cost_board[row_index][col_index] < min_attacks:
+                    min_attacks = cost_board[row_index][col_index]
                     newX = row_index
                     newY = col_index
-                self.squareArray[row_index][col_index] = 0
-
-            self.squareArray[queen_loc_x][col_index] = 1
+                # Adding a sense of randomness to avoid local minimum
+                if cost_board[row_index][col_index] == min_attacks:
+                    j = random.randint(1, 2)
+                    if j == 1:
+                        min_attacks = cost_board[row_index][col_index]
+                        newX = row_index
+                        newY = col_index
 
         better_board = copy.deepcopy(self)
         for i in range(board_size):
