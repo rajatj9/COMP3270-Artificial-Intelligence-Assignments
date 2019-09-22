@@ -449,7 +449,7 @@ class FoodSearchProblem:
             if not self.walls[nextx][nexty]:
                 nextFood = state[1].copy()
                 nextFood[nextx][nexty] = False
-                successors.append( ( ((nextx, nexty), nextFood), direction, 1) )
+                successors.append( ( ((nextx, nexty), nextFood), direction, 1))
         return successors
 
     def getCostOfActions(self, actions):
@@ -499,7 +499,19 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    heuristic = 0
+    if problem.isGoalState(state):
+        return heuristic
+    shortest_distance = 999999
+    closest_food = foodGrid.asList()[0]
+    for food in foodGrid.asList():
+        manhattan_distance = util.manhattanDistance(food, position)
+        if manhattan_distance < shortest_distance:
+            shortest_distance = manhattan_distance
+            closest_food = food
+    heuristic = mazeDistance(closest_food, position, problem.startingGameState)
+    heuristic += len(foodGrid.asList()) - 1
+    return heuristic
 
 class ClosestDotSearchAgent(SearchAgent):
     """Search for all food using a sequence of searches"""
