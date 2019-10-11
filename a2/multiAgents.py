@@ -1,4 +1,5 @@
 from util import manhattanDistance
+import math
 from game import Directions
 import random, util
 
@@ -53,15 +54,40 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        prevFood = currentGameState.getFood()
+        # prevFood = currentGameState.getFood()
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        # newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        state_value = successorGameState.getScore()
+
+        # Food Dots Left
+        food_dots_left = successorGameState.getNumFood()
+        state_value -= math.exp(-food_dots_left*15)
+
+        # Distance to closest food dot
+        if len(newFood.asList()) > 0:
+            min_value = math.inf
+            for food_position in newFood.asList():
+                food_dot_distance = manhattanDistance(newPos, food_position)
+                if food_dot_distance < min_value:
+                    min_value = food_dot_distance
+            state_value += math.exp(-min_value)
+
+        # Distance to closest ghost
+        if len(newGhostStates) > 0:
+            min_distance = math.inf
+            for ghost in newGhostStates:
+                ghost_position = ghost.getPosition()
+                distance_to_ghost = manhattanDistance(newPos, ghost_position)
+                if distance_to_ghost < min_distance:
+                    min_distance = distance_to_ghost
+            state_value -= math.exp(-min_distance)
+
+        return state_value
+
         
 
 def scoreEvaluationFunction(currentGameState):
