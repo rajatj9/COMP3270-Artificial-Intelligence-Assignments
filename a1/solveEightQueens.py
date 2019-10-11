@@ -46,9 +46,8 @@ class SolveEightQueens:
             i += 1
             if newNumberOfAttacks == 0:
                 break
-            if currentNumberOfAttacks == newNumberOfAttacks:
-                if i > 100:
-                    break
+            if currentNumberOfAttacks == newNumberOfAttacks and i > 100:
+                break
             if currentNumberOfAttacks < newNumberOfAttacks:
                 break
         return newBoard
@@ -61,7 +60,7 @@ class Board:
             self.squareArray = squareArray
 
     @staticmethod
-    def initBoardWithRandomQueens():
+`    def initBoardWithRandomQueens():
         tmpSquareArray = [[ 0 for i in range(8)] for j in range(8)]
         for i in range(8):
             tmpSquareArray[random.randint(0,7)][i] = 1
