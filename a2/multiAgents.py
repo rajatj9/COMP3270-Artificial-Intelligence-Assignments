@@ -90,7 +90,8 @@ class ReflexAgent(Agent):
 
         
 
-def scoreEvaluationFunction(currentGameState):
+    def scoreEvaluationFunction(currentGameState):
+        return currentGameState.getScore()
     """
       This default evaluation function just returns the score of the state.
       The score is the same one displayed in the Pacman GUI.
@@ -98,7 +99,8 @@ def scoreEvaluationFunction(currentGameState):
       This evaluation function is meant for use with adversarial search agents
       (not reflex agents).
     """
-    return currentGameState.getScore()
+
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -114,16 +116,33 @@ class MultiAgentSearchAgent(Agent):
       only partially specified, and designed to be extended.  Agent (game.py)
       is another abstract class.
     """
-
     def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
         self.index = 0 # Pacman is always agent index 0
-        self.evaluationFunction = util.lookup(evalFn, globals())
+        self.evaluationFunction = self.scoreEvaluationFunction
         self.depth = int(depth)
+
+    def scoreEvaluationFunction(self, currentGameState):
+        return currentGameState.getScore()
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
+    def minimax(self, gameState, depth, agentID):
+
+        if agentID == gameState.getNumAgents():
+            return self.minimax(gameState, depth + 1, 0)
+
+        if gameState.isWin() or gameState.isLose() or depth == self.depth or gameState.getLegalActions(agentID) == 0:
+            return self.evaluationFunction(gameState)
+
+        state_scores = []
+        for action in gameState.getLegalActions(agentID):
+            state_scores.append(self.minimax(gameState.generateSuccessor(agentID, action), depth, agentID + 1))
+        if agentID % gameState.getNumAgents() == 0:
+            return max(state_scores)
+        else:
+            return min(state_scores)
 
     def getAction(self, gameState):
         """
@@ -149,7 +168,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        available_actions = gameState.getLegalActions(0)
+        score_action = [(self.minimax(gameState.generateSuccessor(0, action), 0, 1),  action)
+                        for action in available_actions]
+        action = max(score_action, key=lambda item: item[0])[1]
+        return action
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
