@@ -117,30 +117,128 @@ class GameRules:
           Check whether the game is over  
         """
         return self.deadTest(boards[0]) and self.deadTest(boards[1]) and self.deadTest(boards[2])
+#
+# class TicTacToeAgent():
+#     """
+#       When move first, the TicTacToeAgent should be able to chooses an action to always beat
+#       the second player.
+#
+#       You have to implement the function getAction(self, gameState, gameRules), which returns the
+#       optimal action (guarantee to win) given the gameState and the gameRules. The return action
+#       should be a string consists of a letter [A, B, C] and a number [0-8], e.g. A8.
+#
+#       You are welcome to add more helper functions in this class to help you. You can also add the
+#       helper function in class GameRules, as function getAction() will take GameRules as input.
+#
+#       However, please don't modify the name and input parameters of the function getAction(),
+#       because autograder will call this function to check your algorithm.
+#     """
+#     def __init__(self):
+#         """
+#           You can initialize some variables here, but please do not modify the input parameters.
+#         """
+#         {}
+#
+#     def getAction(self, gameState, gameRules):
+#         legalActions = gameState.getLegalActions(gameRules)
+#         # find the best action
+#         for action in legalActions:
+#             # get the successor boards of the current boards(i.e. gameState)
+#             newBoards = gameState.generateSuccessor(action).boards
+#             newBoardsValue = gameRules.getBoardsValue(newBoards)
+#             # simplify the newBoardsValue to be an element of monoid Q
+#             newBoardsValue = gameRules.simplifyToMonoid(newBoardsValue)
+#             if newBoardsValue in gameRules.p_Position:
+#                 # print("--------- P-position action exist-----------")
+#                 return action
+#
+#         # if all legal actions cannot lead the successor to be a P-position, then randomly choose one
+#         return random.choice(legalActions)
 
-class TicTacToeAgent():
+class TicTacToeAgent:
     """
-      When move first, the TicTacToeAgent should be able to chooses an action to always beat 
+      When move first, the TicTacToeAgent should be able to chooses an action to always beat
       the second player.
-
-      You have to implement the function getAction(self, gameState, gameRules), which returns the 
+      You have to implement the function getAction(self, gameState, gameRules), which returns the
       optimal action (guarantee to win) given the gameState and the gameRules. The return action
-      should be a string consists of a letter [A, B, C] and a number [0-8], e.g. A8. 
-
+      should be a string consists of a letter [A, B, C] and a number [0-8], e.g. A8.
       You are welcome to add more helper functions in this class to help you. You can also add the
       helper function in class GameRules, as function getAction() will take GameRules as input.
-      
-      However, please don't modify the name and input parameters of the function getAction(), 
+
+      However, please don't modify the name and input parameters of the function getAction(),
       because autograder will call this function to check your algorithm.
     """
+
     def __init__(self):
-        """ 
+        """
           You can initialize some variables here, but please do not modify the input parameters.
         """
-        {}
 
     def getAction(self, gameState, gameRules):
-        util.raiseNotDefined()
+
+        available_actions = gameState.getLegalActions(gameRules)
+        best_action = random.choice(available_actions)
+        for action in available_actions:
+            successor = gameState.generateSuccessor(action)
+            result = "".join([self.evaluate_board_state(successor.boards[i]) for i in range(3)])
+            if result in ["CC", "CB", "BC", "BB", "A"]:
+                return action
+        return best_action
+
+    def evaluate_board_state(self, board):
+
+        positions_x = {i: [] for i in range(8)}
+        positions_x[0] = [i for i in range(9) if board[i]]
+
+        for i in range(9):
+            if i < 3:
+                positions_x[i + 1] = [m for m in range(9) if self.rotate_board(board, i + 1)[m]]
+            if i == 4:
+                mirror_board = self.reflect_board(board)
+                positions_x[4] = [i for i in range(9) if mirror_board[i]]
+            else:
+                mirror_board = self.reflect_board(board)
+                positions_x[i + 5] = [m for m in range(9) if self.rotate_board(mirror_board, i + 1)[m]]
+        return self.checker(positions_x)
+
+    def checker(self, positions_x):
+
+        states = dict()
+        states["A"] = [(0, 8), (1, 3), (1, 7), (0, 1, 6), (0, 2, 4), (0, 2, 7), (0, 4, 5), (0, 1, 3, 4), (0, 1, 3, 5),
+                  (0, 1, 3, 8), (0, 1, 7, 8), (0, 2, 6, 8), (1, 3, 5, 7), (0, 1, 4, 5, 6), (0, 1, 5, 6, 7),
+                  (0, 1, 5, 6, 8), (0, 1, 3, 5, 7, 8)]
+        states["B"] = [(0, 2), (0, 4), (0, 5), (1, 4), (0, 1, 3), (1, 3, 5), (0, 1, 4, 5), (0, 1, 4, 6), (0, 1, 5, 6),
+                  (0, 1, 6, 7), (0, 1, 6, 8), (0, 2, 4, 7), (0, 4, 5, 7), (0, 1, 3, 5, 8), (0, 1, 3, 5, 7)]
+        states["D"] = [(0, 1, 5), (0, 1, 7), (0, 1, 8)]
+        states["AB"] = [(0, 1, 4), (0, 2, 6), (1, 3, 4), (0, 1, 5, 7), (0, 1, 5, 8), ]
+        states["AD"] = [(0, 1)]
+
+        for i in range(8):
+            if len(positions_x[i]) == 0:
+                return "C"
+            elif len(positions_x[i]) == 1 and positions_x[i][0] == 4:
+                return "CC"
+            for key in states.keys():
+                if tuple(positions_x[i]) in states[key]:
+                    return key
+        return ""
+
+    def rotate_board(self, board, degree):
+        new_board = board.copy()
+        for m in range(degree):
+            for i in range(3):
+                for j in range(3):
+                    new_board[(j * 3) + 2 - i] = board[(i * 3) + j]
+            board = new_board
+            new_board = board.copy()
+        return new_board
+
+    def reflect_board(self, board):
+        new_board = board.copy()
+        for i in range(3):
+            for j in range(3):
+                new_board[(i * 3) + 2 - j] = board[(i * 3) + j]
+        return new_board
 
 
 class randomAgent():
