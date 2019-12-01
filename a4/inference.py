@@ -76,6 +76,8 @@ class DiscreteDistribution(dict):
         """
         "*** YOUR CODE HERE ***"
         Z = self.total()
+        if Z == 0:
+            return
         if len(self.items()) != 0:
             for key, value in self.items():
                 self.__setitem__(key, value/Z)
@@ -287,10 +289,11 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-
+        for position in self.allPositions:
+            self.beliefs[position] *= self.getObservationProb(observation, gameState.getPacmanPosition(), position, self.getJailPosition())
         self.beliefs.normalize()
 
+    # noinspection PyAttributeOutsideInit
     def elapseTime(self, gameState):
         """
         Predict beliefs in response to a time step passing from the current
@@ -301,7 +304,13 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        new_dist = DiscreteDistribution()
+        for position in self.allPositions:
+            new_pos_dist = self.getPositionDistribution(gameState, position)
+            for new_position, probability in new_pos_dist.items():
+                new_dist[new_position] += self.beliefs[position]*probability
+
+        self.beliefs = new_dist
 
     def getBeliefDistribution(self):
         return self.beliefs
