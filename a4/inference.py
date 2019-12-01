@@ -114,7 +114,6 @@ class InferenceModule:
     ############################################
     # Useful methods for all inference modules #
     ############################################
-
     def __init__(self, ghostAgent):
         """
         Set the ghost agent for later access.
@@ -174,7 +173,13 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        if ghostPosition == jailPosition and noisyDistance is None:
+            return 1.0
+        elif ghostPosition == jailPosition and noisyDistance is not None:
+            return 0.0
+        if noisyDistance is None:
+            return 0.0
+        return busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition))
 
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
