@@ -13,6 +13,7 @@
 
 
 import util
+import math
 from game import Agent
 from game import Directions
 from keyboardAgents import KeyboardAgent
@@ -144,3 +145,17 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
+        minimum_distance, ghost_position = math.inf, None
+        for distribution in livingGhostPositionDistributions:
+            ghost_distance = self.distancer.getDistance(distribution.argMax(), pacmanPosition)
+            if ghost_distance < minimum_distance:
+                minimum_distance, ghost_position = ghost_distance, distribution.argMax()
+
+        minimum_distance, best_action = math.inf, None
+        for action in gameState.getLegalPacmanActions():
+            distance_to_new_location = self.distancer.getDistance(ghost_position, Actions.getSuccessor(pacmanPosition, action))
+            if distance_to_new_location < minimum_distance:
+                best_action = action
+                minimum_distance = distance_to_new_location
+
+        return best_action
